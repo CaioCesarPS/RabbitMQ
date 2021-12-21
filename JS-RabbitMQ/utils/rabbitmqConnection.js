@@ -29,7 +29,8 @@ class RabbitConnection {
       }
 
       channel.assertQueue(queue, {
-        durable: false,
+        // guarda as mensagens em disco para evitar perdas
+        durable: true,
       });
       channel.sendToQueue(queue, Buffer.from(message));
 
@@ -47,15 +48,18 @@ class RabbitConnection {
       }
   
       channel.assertQueue(queue, {
-        durable: false
+        durable: true
       });
 
       console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
 
       channel.consume(queue, function(msg) {
           console.log(" [x] Received %s", msg.content.toString());
+          channel.ack(msg)
       }, {
-          noAck: true
+          // noAck: false = precisa implementar um jeito de tirar a mensagem da fila
+          // noAck: true = assim que a mensagem é publicada pelo producer ele já manda tirar da fila sem confirmação
+          noAck: false
       });
     });
   }
